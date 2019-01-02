@@ -1,0 +1,168 @@
+<html>
+<head>
+	<script src="src/rivets.bundled.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.slim.min.js"></script>
+	<script src="src/maps.js"></script>
+	<script src="src/utils.js"></script>
+	<script src="src/renderer.js"></script>
+	
+	<link href="https://fonts.googleapis.com/css?family=Galdeano" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
+	<style>
+		#body { background-color: #000; font-family: 'Inconsolata', monospace; }
+		#title { font-family: 'Galdeano', sans-serif; margin: 0; text-align: center; color: #044; }
+		#title span#title-first { color: #088; }
+		#title span#title-second { color: #080; }
+		p { color: #888; font-size: 0.7em; margin: 11px 0; text-align: center; }
+		p strong { color: #AAA; }
+		p span { color: #044; }
+		#screen { text-align: center; }
+		
+		@media (min-width:320px)  { body { font-size: 10px; } }
+		@media (min-width:480px)  { body { font-size: 12px; } }
+		@media (min-width:600px)  { body { font-size: 16px; } }
+		@media (min-width:801px)  { body { font-size: 20px; } }
+		@media (min-width:1025px) { body { font-size: 24px; } }
+		@media (min-width:1281px) { body { font-size: 30px; } }
+	</style>
+</head>
+<body id="body">
+<h1 id="title"><span id="title-first">W</span>orld of <span id="title-second">ASCII</span></h1>
+
+<p>Controls: <strong>arrow keys</strong> <span>or</span> <strong>hjkl</strong> yubn <span>or</span> <strong>numpad</strong> <span>or</span> <strong>wasd</strong> qezc.</p>
+
+<div id="screen"></div>
+  
+<script>
+// Todo:
+// - ambient sound based on player location
+// - sound effects such as player hit and monster kill
+// - music per level
+// - mouse pointer movement with path finding and auto-walk until monster visible, then move one step per click
+
+// Ideas:
+// - change forest village into visible small houses on overview map
+// - change water area into visible small fishing village on overview map
+// - move overview map lower right maze to ruins dungeon (2nd dungeon)
+// - change lower right maze into ominous temple on overview map
+// - expand mountain into snow village and rocky mountain pass dungeon on overview map
+// - add ghost town
+// - add desert
+// - add dark abandoned railway area with small ghost mine
+
+// Location inspirations: seven natural world wonders
+// - Iguazu Falls (green islands and stormy waterfalls)
+// - Thien Cung Grotto
+// - Jejudo (landscape and vulcano)
+// - Table Mountain (red cliff mountains surrounded by misty white clouds)
+// - Mount Everest (white snowy mountain pass)
+// - Komodo Islands (desert islands surrounded by blue ocean water and bridges connecting them)
+// - Amazon Rainforest
+
+// Main functions triggered when document ready
+$(function() {
+	var $screen = $('#screen');
+	
+	// Draw level
+	$screen.html( getWorld() );
+	
+	// Init animation loop
+	setInterval(function() {
+		gameMaps.colorMapSwitch = ! gameMaps.colorMapSwitch;
+		
+		// Draw level
+		$screen.html( getWorld() );
+	}, 2000);
+	
+	// Bind all movement keys and update / redraw world
+	$(document).keydown(function(e) {
+		// Debug line, shows ASCII input numbers for easy binding
+		//console.log(e.which);
+		
+		// Trigger correct movement for key and make movement permanent if move is valid
+		if (! gameMaps.levels[ gameMaps.currentLevel ].showSplashScreen) {
+			switch(e.which) {
+				case 37: // left
+				case 72: // left
+				case 65: // left
+				case 100: // left
+					changePlayerPosition(-1, 0);
+					if (! playerCanMove()) changePlayerPosition(1, 0);;
+				break;
+
+				case 38: // up
+				case 75: // up
+				case 87: // up
+				case 104: // up
+					changePlayerPosition(0, -1);
+					if (! playerCanMove()) changePlayerPosition(0, 1);;
+				break;
+
+				case 39: // right
+				case 76: // right
+				case 68: // right
+				case 102: // right
+					changePlayerPosition(1, 0);
+					if (! playerCanMove()) changePlayerPosition(-1, 0);
+				break;
+
+				case 40: // down
+				case 74: // down
+				case 83: // down
+				case 98: // down
+					changePlayerPosition(0, 1);
+					if (! playerCanMove()) changePlayerPosition(0, -1);
+				break;
+
+				case 81: // upper-left
+				case 89: 
+				case 103: 
+					changePlayerPosition(-1, -1);
+					if (! playerCanMove()) changePlayerPosition(1, 1);
+				break;
+
+				case 69: // upper-right
+				case 85: 
+				case 105: 
+					changePlayerPosition(1, -1);
+					if (! playerCanMove()) changePlayerPosition(-1, 1);
+				break;
+
+				case 66: // lower-left
+				case 90: 
+				case 97: 
+					changePlayerPosition(-1, 1);
+					if (! playerCanMove()) changePlayerPosition(1, -1);
+				break;
+
+				case 67: // lower-right
+				case 78: 
+				case 99: 
+					changePlayerPosition(1, 1);
+					if (! playerCanMove()) changePlayerPosition(-1, -1);
+				break;
+
+				default: return; // exit this handler for other keys
+			}
+		}
+		
+		// disable splash screen on first move in level
+		if (gameMaps.levels[ gameMaps.currentLevel ].showSplashScreen) {
+			gameMaps.levels[ gameMaps.currentLevel ].showSplashScreen = false;
+		} else {
+			// check if current position will change map and change level if required
+			changeLevelIfRequired();
+		}
+		
+		// update view, redraw screen
+		$screen.html( getWorld(true) );
+		
+		e.preventDefault(); // prevent the default action
+	});
+});
+
+</script>
+
+
+</body>
+</html>
